@@ -39,7 +39,7 @@ class SentenceSpliter():
             spliter_id = len(sen) - 1
 
             #for single sentence
-            feature = self.feature_model.gen_feature_vector(sen,spliter_id)
+            feature,_ = self.feature_model.gen_feature_vector(sen,spliter_id)
             feature_list.append(feature)
             label_list.append(1)
             if sen_list != None:
@@ -47,7 +47,7 @@ class SentenceSpliter():
 
             #for merge sentence
             sen_merge = " ".join([sens[i],sens[i+1]])
-            feature = self.feature_model.gen_feature_vector(sen_merge,spliter_id)
+            feature,_ = self.feature_model.gen_feature_vector(sen_merge,spliter_id)
             feature_list.append(feature)
             label_list.append(1)
             if sen_list!=None:
@@ -55,7 +55,7 @@ class SentenceSpliter():
             idx = 0
             for c in sen[:-1]:
                 if Feature.is_spliter_candidate(c):
-                    feature = self.feature_model.gen_feature_vector(sen,idx)
+                    feature,_ = self.feature_model.gen_feature_vector(sen,idx)
                     feature_list.append(feature)
                     label_list.append(0)
                     if sen_list != None:
@@ -66,18 +66,26 @@ class SentenceSpliter():
 
     def loading_none_spliter_rule(self,feature_list,label_list,sen_list=None):
         rules = loading_data.load_none_spliter()
-        print "Loading %s rules."%len(rules)
+        print "Loading rules."
         for rule in rules:
+            if rule[0]=="#":
+                continue
             if rule[0]=="r":
                 rule = rule[1:]
-                print "Add a new regex: %s"%rule
+                print "Add a soft regex: %s"%rule
                 self.feature_model.add_none_spliter_regrex(rule)
+                continue
+            elif rule[0]=="h":
+                rule = rule[1:]
+                print "Add a hard rule regex: %s" % rule
+                self.feature_model.add_none_spliter_regrex(rule,True)
                 continue
 
             idx = 0
             for c in rule:
                 if Feature.is_spliter_candidate(c):
-                    feature_list.append(self.feature_model.gen_feature_vector(rule,idx,is_forced=True))
+                    feature,_= self.feature_model.gen_feature_vector(rule,idx,is_forced=True)
+                    feature_list.append(feature)
                     label_list.append(0)
                     if sen_list != None:
                         sen_list.append(rule)
@@ -115,11 +123,14 @@ class SentenceSpliter():
 
         list_features = []
         list_candidates = []
+        list_hard_rule_idx = []
         idx = 0
         for c in par:
             if Feature.is_spliter_candidate(c):
                 list_candidates.append(idx)
-                feature = self.feature_model.gen_feature_vector(par, idx)
+                feature,is_hard = self.feature_model.gen_feature_vector(par, idx)
+                if is_hard:
+                    list_hard_rule_idx.append(len(list_candidates)-1)
                 if is_debug:
                     print feature
                 list_features.append(feature)
@@ -138,6 +149,9 @@ class SentenceSpliter():
 
 
         labels = self.classifier.predict(list_features)
+
+        for l in list_hard_rule_idx:
+            labels[l] = 0
 
         list_true_spliters = [-1]
         for i in xrange(len(labels)):

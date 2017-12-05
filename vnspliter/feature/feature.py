@@ -9,8 +9,12 @@ class Feature:
         self.NONE_SPLITER_DICT = dict()
         self.is_name_re = re.compile("[A-Z]{1,2}\.")
         self.NONE_SPILTER_REGEXES = []
-    def add_none_spliter_regrex(self,sregex):
-        self.NONE_SPILTER_REGEXES.append(re.compile(sregex,re.UNICODE))
+        self.HARD_RULES_REGEXES = []
+    def add_none_spliter_regrex(self,sregex,is_hard=False):
+        if is_hard == False:
+            self.NONE_SPILTER_REGEXES.append(re.compile(sregex,re.UNICODE))
+        else:
+            self.HARD_RULES_REGEXES.append(re.compile(sregex,re.UNICODE))
     def is_match_regex_rules(self,word):
         for reg in self.NONE_SPILTER_REGEXES:
             ss = reg.search(word)
@@ -21,13 +25,23 @@ class Feature:
 
         return 0
 
+    def is_match_hard_rules(self,word):
+        for reg in self.HARD_RULES_REGEXES:
+            ss = reg.search(word)
+            if ss != None:
+                return 1
+        return 0
+
     def gen_feature_vector(self,sent,current_id,is_forced=False,is_none=False):
         next_word = Feature.get_next_word(sent,current_id)
         previous_word = Feature.get_previous_word(sent,current_id)
         #print previous_word,next_word
 
         features = []
-        is_regex = self.is_match_regex_rules(Feature.get_local_word(sent,current_id,previous_word,next_word))
+        local_word = Feature.get_local_word(sent,current_id,previous_word,next_word)
+        is_regex = self.is_match_regex_rules(local_word)
+        is_hard_rule = self.is_match_hard_rules(local_word)
+
         features.append(is_regex)
         pre_plus  = 0
         next_plus = 0
@@ -56,7 +70,7 @@ class Feature:
 
         features.append(Feature.if_close_pre_contains_dot(sent,current_id))
         #return np.array(features,dtype=float)
-        return features
+        return features,is_hard_rule
 
     @staticmethod
     def get_local_word(sent,current_id,pre,next):
