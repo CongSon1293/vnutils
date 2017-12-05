@@ -1,4 +1,3 @@
-from bs4 import BeautifulSoup
 from io import open
 import os.path
 c_dir = os.path.abspath(os.path.dirname(__file__))
@@ -9,6 +8,7 @@ raw_none_splitter_path = "%s/data/none_spliter.dat"%c_dir
 def load_sentence():
     sens = []
     with open(raw_data_path,encoding="UTF-8") as raw_data:
+        from bs4 import BeautifulSoup
         data =  BeautifulSoup(raw_data,'html.parser')
         sentences = data.find_all('s')
         for sen in sentences:
