@@ -111,6 +111,8 @@ class SentenceSpliter():
         #f.close()
         print cc,ll,cc*1.0/ll
     def __split_par(self, par, is_debug=False):
+        list_sens = []
+
         list_features = []
         list_candidates = []
         idx = 0
@@ -124,6 +126,11 @@ class SentenceSpliter():
             idx += 1
         if is_debug:
             print list_candidates
+
+        if len(list_candidates) ==0:
+            list_sens.append(par)
+            return list_sens
+
         #print list_features
         #list_features = np.array(list_features)
         #print "Shape: ",list_features.shape
@@ -137,7 +144,6 @@ class SentenceSpliter():
             if labels[i] == 1:
                 list_true_spliters.append(list_candidates[i])
 
-        list_sens = []
         if list_candidates[-1] != len(par) - 1:
             list_true_spliters.append(len(par)-1)
 
@@ -158,6 +164,8 @@ class SentenceSpliter():
         paragraphs = doc.split("\n")
         sens = []
         for par in paragraphs:
+            if len(par)<1:
+                continue
             par_sens = self.__split_par(par, is_debug)
             for sen in par_sens:
                 sens.append(sen)
@@ -184,7 +192,7 @@ def demo_cml():
             continue
         print "--------------------------------"
         print "Result:"
-        list_sens= sentence_spliter.__split_par(par, True)
+        list_sens= sentence_spliter.split(par, True)
         for sen in list_sens:
             print sen
         #sentence_spliter.feature_model.gen_ve
@@ -200,7 +208,7 @@ def demo_file():
         f = open("input.dat",encoding="UTF-8")
         file = "\n".join(f.readlines())
         f.close()
-        list_sens = sentence_spliter.__split_par(file, True)
+        list_sens = sentence_spliter.split(file, True)
         f = open("output.dat","w",encoding="UTF-8")
         for sen in list_sens:
             print sen
@@ -209,8 +217,8 @@ def demo_file():
 
 if __name__=="__main__":
    #train()
-   #demo_file()
-   demo_cml()
+   demo_file()
+   #demo_cml()
 
 
 
