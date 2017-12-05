@@ -4,3 +4,6 @@ main.py
 vnspliter/data/
 .idea
 vnspliter/.idea
+input.dat
+output.dat
+wrong.dat
