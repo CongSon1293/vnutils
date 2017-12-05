@@ -2,3 +2,5 @@
 .git
 main.py
 vnspliter/data/
+.idea
+vnspliter/.idea
