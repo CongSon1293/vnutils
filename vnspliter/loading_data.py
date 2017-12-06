@@ -17,9 +17,11 @@ def load_sentence():
 
     return sens
 
-def load_none_spliter():
+def load_none_spliter(path=None):
     sens = []
-    with open(raw_none_splitter_path,encoding="UTF-8") as raw_data:
+    if path==None:
+        path = raw_none_splitter_path
+    with open(path,encoding="UTF-8") as raw_data:
         while True:
             line = raw_data.readline()
             if line == "":

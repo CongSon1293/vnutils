@@ -12,7 +12,7 @@ from feature.feature import Feature
 
 
 class SentenceSpliter():
-    def __init__(self,path="models/model.dump",is_training=False):
+    def __init__(self,path="models/model.dump",is_training=False,new_rule_path=None):
         self.classifier = None
         self.feature_model = None
         self.multi_newline_regex = re.compile("\n+")
@@ -24,6 +24,8 @@ class SentenceSpliter():
                 model = utils.pickle_load(self.model_path)
                 self.classifier = model.classifier
                 self.feature_model = model.feature_model
+                if new_rule_path != None:
+                    self.load_custom_hard_rule(new_rule_path)
             else:
                 print "Unalbe to load the spliter model. %s"%path
                 exit(-1)
@@ -62,6 +64,17 @@ class SentenceSpliter():
                         sen_list.append(sen)
                 idx += 1
 
+
+    def load_custom_hard_rule(self,path):
+        rules = loading_data.load_none_spliter(path)
+        for rule in rules:
+            if rule[0]=="#":
+                continue
+            elif rule[0]=="h":
+                rule = rule[1:]
+                print "Add a hard rule regex: %s" % rule
+                self.feature_model.add_none_spliter_regrex(rule,True)
+                continue
 
 
     def loading_none_spliter_rule(self,feature_list,label_list,sen_list=None):
