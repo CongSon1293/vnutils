@@ -4,6 +4,7 @@ class Feature:
 
     NONE_SPLITER_OFFSET = 100
     NEXT_LOCAL_STEP = 15
+    MAX_NAME_LENGTH = 15
 
     def __init__(self):
         self.NONE_SPLITER_DICT = dict()
@@ -38,9 +39,11 @@ class Feature:
         #print previous_word,next_word
 
         features = []
-        local_word = Feature.get_local_word(sent,current_id,previous_word,next_word)
+        local_word,long_name_local_word = Feature.get_local_word(sent,current_id,previous_word,next_word)
         is_regex = self.is_match_regex_rules(local_word)
         is_hard_rule = self.is_match_hard_rules(local_word)
+        if is_hard_rule == 0 and not long_name_local_word == None:
+            is_hard_rule = self.is_match_regex_rules(long_name_local_word)
 
         features.append(is_regex)
         pre_plus  = 0
@@ -74,12 +77,27 @@ class Feature:
 
     @staticmethod
     def get_local_word(sent,current_id,pre,next):
+        long_pre_local = None
+        local_word = None
+
         if current_id == len(sent)-1:
-            return pre+sent[current_id]
+            return pre+sent[current_id],long_pre_local
         s = ""
         if sent[current_id+1] == " ":
             s = " "
-        return pre+sent[current_id]+s+next
+        # Get long pre local: Jose J. S
+        if len(pre) <= 2 and pre.istitle():
+            pre_id = current_id - len(pre)
+            for offset in xrange(2,Feature.MAX_NAME_LENGTH):
+                sep_id = pre_id-offset
+                if sep_id >= 0:
+                    if sent[sep_id] == " " or sep_id==0:
+                        long_pre_local = sent[sep_id:current_id]+sent[current_id]+s+next
+                        break
+
+
+        local_word = pre+sent[current_id]+s+next
+        return local_word,long_pre_local
 
     @staticmethod
     def if_close_pre_contains_dot(sent,current_id):
