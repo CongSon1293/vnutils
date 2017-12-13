@@ -7,3 +7,5 @@ vnspliter/.idea
 input.dat
 output.dat
 wrong.dat
+.gitignore
+new_rules.dat

@@ -66,7 +66,7 @@ class SentenceSpliter():
 
 
     def load_custom_hard_rule(self,path):
-        rules = loading_data.load_none_spliter(path)
+        rules = loading_data.load_spliter_rules(path)
         for rule in rules:
             if rule[0]=="#":
                 continue
@@ -77,8 +77,18 @@ class SentenceSpliter():
                 continue
 
 
+    def loading_forcing_spliter_rule(self):
+        rules = loading_data.load_spliter_rules(loading_data.raw_forcing_spliter_path)
+        for rule in rules:
+            if rule[0] == "#":
+                continue
+            elif rule[0] == "h":
+                rule = rule[1:]
+                print "Add a hard forcing rule regex: %s" % rule
+                self.feature_model.add_forcing_splitter_regrex(rule)
+
     def loading_none_spliter_rule(self,feature_list,label_list,sen_list=None):
-        rules = loading_data.load_none_spliter()
+        rules = loading_data.load_spliter_rules()
         print "Loading rules."
         for rule in rules:
             if rule[0]=="#":
@@ -112,6 +122,7 @@ class SentenceSpliter():
         label_list = []
         sen_list = []
         self.loading_none_spliter_rule(feature_list,label_list,sen_list)
+        self.loading_forcing_spliter_rule()
         self.load_normal_data(feature_list,label_list,sen_list)
         self.classifier = LogisticRegression(verbose=False)
         print "Learning..."
@@ -136,14 +147,17 @@ class SentenceSpliter():
 
         list_features = []
         list_candidates = []
-        list_hard_rule_idx = []
+        list_hard_rule_none_spliter_idx = []
+        list_hard_rule_forcing_spliter_idx = []
         idx = 0
         for c in par:
             if Feature.is_spliter_candidate(c):
                 list_candidates.append(idx)
                 feature,is_hard = self.feature_model.gen_feature_vector(par, idx)
-                if is_hard:
-                    list_hard_rule_idx.append(len(list_candidates)-1)
+                if is_hard > 0:
+                    list_hard_rule_none_spliter_idx.append(len(list_candidates)-1)
+                elif is_hard < 0:
+                    list_hard_rule_forcing_spliter_idx.append(len(list_candidates)-1)
                 if is_debug:
                     print feature
                 list_features.append(feature)
@@ -163,8 +177,10 @@ class SentenceSpliter():
 
         labels = self.classifier.predict(list_features)
 
-        for l in list_hard_rule_idx:
+        for l in list_hard_rule_none_spliter_idx:
             labels[l] = 0
+        for l in list_hard_rule_forcing_spliter_idx:
+            labels[l] = 1
 
         list_true_spliters = [-1]
         for i in xrange(len(labels)):

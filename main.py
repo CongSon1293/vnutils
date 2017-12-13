@@ -8,7 +8,7 @@ def check_re():
     s= reg.search(sen)
     print s
 def demo_file():
-    sentence_spliter = SentenceSpliter()
+    sentence_spliter = SentenceSpliter(new_rule_path="new_rules.dat")
     while True:
         cmd = raw_input("Cmd 1 = Cont 0 = Quit:")
         if len(cmd) < 1:

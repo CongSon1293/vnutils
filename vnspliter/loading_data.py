@@ -4,6 +4,7 @@ c_dir = os.path.abspath(os.path.dirname(__file__))
 
 raw_data_path = "%s/data/training.xml"%c_dir
 raw_none_splitter_path = "%s/data/none_spliter.dat"%c_dir
+raw_forcing_spliter_path = "%s/data/forcing_splitter.dat"%c_dir
 
 def load_sentence():
     sens = []
@@ -17,7 +18,7 @@ def load_sentence():
 
     return sens
 
-def load_none_spliter(path=None):
+def load_spliter_rules(path=None):
     sens = []
     if path==None:
         path = raw_none_splitter_path
